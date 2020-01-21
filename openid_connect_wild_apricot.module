@@ -1,0 +1,77 @@
+<?php
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function openid_connect_wild_apricot_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'openid_connect') {
+    return 'plugins/' . $plugin;
+  }
+}
+
+function openid_connect_wild_apricot_openid_connect_post_authorize(
+    $tokens, $account, $userinfo, $client_name, $is_new) {
+
+  $membership_level_bindings = variable_get('openid_connect_wild_apricot_membership_level_bindings', array());
+  
+  $membership_level = isset($userinfo['MembershipLevel']) 
+                      && isset($userinfo['MembershipLevel']['Id'])
+                      && isset($userinfo['Status'])
+                      && $userinfo['Status'] == 'Active' 
+                       ? $userinfo['MembershipLevel']['Id'] 
+                       : NULL;
+ 
+  $roles = $account->roles;
+
+  foreach (user_roles(TRUE) as $rid => $name) {
+    if (isset($membership_level_bindings[$rid]) && !in_array('__ignore__', $membership_level_bindings[$rid])) {
+      if (in_array($membership_level, $membership_level_bindings[$rid])) {
+        $roles[$rid] = $name;
+      } else {
+        unset($roles[$rid]);
+      }
+    } 
+  }
+  
+  if (array_diff($roles, $account->roles) !== array_diff($account->roles, $roles)) {
+    user_save($account, array('roles' => $roles));
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function openid_connect_wild_apricot_menu() {
+  $items = array();
+
+  $items['admin/people/permissions/openid-connect-wild-apricot'] = array(
+    'title' => 'Wild Apricot Role Mappings',
+    'description' => 'List, edit, or add user roles.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('openid_connect_wild_apricot_role_mappings_form'),
+    'access arguments' => array('administer permissions'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'include/role_mappings.admin.inc',
+    'weight' => -1,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function openid_connect_wild_apricot_theme() {
+  return array(
+    'openid_connect_wild_apricot_role_mappings_form' => array(
+      'render element' => 'form',
+      'file' => 'include/role_mappings.admin.inc'
+    ),
+  );
+}
+
+function openid_connect_wild_apricot_membership_levels() {
+  $client = openid_connect_get_client('wildapricot');
+  $tokens = $client->retrieveTokens(NULL);
+  return $client->retrieveMembershipLevels($tokens['access_token']);
+}

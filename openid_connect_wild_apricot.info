@@ -1,0 +1,9 @@
+name = OpenID Connect Wild Apricot Client
+description = OpenID Connect Wild Apricot Client Wild Apricot
+core = 7.x
+package = "OAuth2"
+#configure = admin/config/services/openid-connect
+dependencies[] = openid_connect
+
+#files[] = includes/OpenIDConnectClientInterface.class.php
+#files[] = includes/OpenIDConnectClientBase.class.php
