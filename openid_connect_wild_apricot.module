@@ -17,7 +17,7 @@ function openid_connect_wild_apricot_openid_connect_post_authorize(
   $membership_level = isset($userinfo['MembershipLevel']) 
                       && isset($userinfo['MembershipLevel']['Id'])
                       && isset($userinfo['Status'])
-                      && $userinfo['Status'] == 'Active' 
+                      && in_array($userinfo['Status'], array('Active', 'PendingRenewal'))
                        ? $userinfo['MembershipLevel']['Id'] 
                        : NULL;
  
