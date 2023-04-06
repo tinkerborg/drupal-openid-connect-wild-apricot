@@ -58,7 +58,7 @@ class OpenIDConnectClientWildApricot extends OpenIDConnectClientBase {
           $this->getSetting('account_id'))
     );
   }
-  
+
   /**
    * Retrieve an array of all defined Wild Apricot membership levels (ID => Name)
    */
@@ -68,10 +68,10 @@ class OpenIDConnectClientWildApricot extends OpenIDConnectClientBase {
         'Authorization' => 'Bearer ' . $access_token
       ),
     );
-    
+
     $endpoints = $this->getEndpoints();
     $response = drupal_http_request($endpoints['membershiplevels'], $request_options);
-    
+
     if (!isset($response->error) && $response->code == 200) {
       $response_data = drupal_json_decode($response->data);
       $membership_levels = array();
@@ -117,7 +117,7 @@ class OpenIDConnectClientWildApricot extends OpenIDConnectClientBase {
         'Authorization' => $authorization
       ),
     );
-    
+
     $endpoints = $this->getEndpoints();
     $response = drupal_http_request($endpoints['token'], $request_options);
 
@@ -140,7 +140,7 @@ class OpenIDConnectClientWildApricot extends OpenIDConnectClientBase {
       return FALSE;
     }
   }
-  
+
   /**
    * {@inheritdoc}
    */
@@ -152,12 +152,21 @@ class OpenIDConnectClientWildApricot extends OpenIDConnectClientBase {
 
     $userinfo['sub'] = $userinfo['Id'];
     unset($userinfo['Id']);
-    
+
+    $userinfo['name'] = $userinfo['FirstName'];
+    unset($userinfo['FirstName']);
+
+    $userinfo['given_name'] = $userinfo['LastName'];
+    unset($userinfo['LastName']);
+
+    $userinfo['phone_number'] = $userinfo['Phone'];
+    unset($userinfo['Phone']);
+
     $userinfo['preferred_username'] = $userinfo['email'];
 
     return $userinfo;
   }
-  
+
   /**
    * {@inheritdoc}
    */
