@@ -1,77 +1,41 @@
 <?php
 
-/**
- * Implements hook_ctools_plugin_directory().
- */
-function openid_connect_wild_apricot_ctools_plugin_directory($module, $plugin) {
-  if ($module == 'openid_connect') {
-    return 'plugins/' . $plugin;
-  }
-}
+function openid_connect_wild_apricot_openid_connect_post_authorize($account, $context) {
+  $userinfo = $context['userinfo'];
 
-function openid_connect_wild_apricot_openid_connect_post_authorize(
-    $tokens, $account, $userinfo, $client_name, $is_new) {
+  $config = \Drupal::service('config.factory')->get('openid_connect.settings.wild_apricot');
+  $membership_level_bindings = $config->get('membership_level_bindings');
 
-  $membership_level_bindings = variable_get('openid_connect_wild_apricot_membership_level_bindings', array());
-  
   $membership_level = isset($userinfo['MembershipLevel']) 
                       && isset($userinfo['MembershipLevel']['Id'])
                       && isset($userinfo['Status'])
                       && in_array($userinfo['Status'], array('Active', 'PendingRenewal'))
                        ? $userinfo['MembershipLevel']['Id'] 
                        : NULL;
- 
-  $roles = $account->roles;
 
-  foreach (user_roles(TRUE) as $rid => $name) {
-    if (isset($membership_level_bindings[$rid]) && !in_array('__ignore__', $membership_level_bindings[$rid])) {
-      if (in_array($membership_level, $membership_level_bindings[$rid])) {
-        $roles[$rid] = $name;
-      } else {
-        unset($roles[$rid]);
+  $roles = $account->getRoles();
+
+  $updated = false;
+
+  foreach (user_roles(TRUE) as $rid => $role) {
+    if ($rid == 'authenticated') continue;
+    if (isset($membership_level_bindings['__ignore__']) &&
+        in_array($rid, $membership_level_bindings['__ignore__'])) continue;
+
+    if (isset($membership_level_bindings[$membership_level])) {
+      if (in_array($rid, $membership_level_bindings[$membership_level])) {
+        if (!in_array($rid, $roles)) {
+          $account->addRole($rid);
+          $updated = true;
+        }
+      } else if (in_array($rid, $roles)) {
+        $account->removeRole($rid);
+        $updated = true;
       }
     } 
   }
-  
-  if (array_diff($roles, $account->roles) !== array_diff($account->roles, $roles)) {
-    user_save($account, array('roles' => $roles));
+
+  if ($updated) {
+    $account->save();
   }
-}
-
-/**
- * Implements hook_menu().
- */
-function openid_connect_wild_apricot_menu() {
-  $items = array();
-
-  $items['admin/people/permissions/openid-connect-wild-apricot'] = array(
-    'title' => 'Wild Apricot Role Mappings',
-    'description' => 'List, edit, or add user roles.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('openid_connect_wild_apricot_role_mappings_form'),
-    'access arguments' => array('administer permissions'),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'include/role_mappings.admin.inc',
-    'weight' => -1,
-  );
-
-  return $items;
-}
-
-/**
- * Implements hook_theme().
- */
-function openid_connect_wild_apricot_theme() {
-  return array(
-    'openid_connect_wild_apricot_role_mappings_form' => array(
-      'render element' => 'form',
-      'file' => 'include/role_mappings.admin.inc'
-    ),
-  );
-}
-
-function openid_connect_wild_apricot_membership_levels() {
-  $client = openid_connect_get_client('wildapricot');
-  $tokens = $client->retrieveTokens(NULL);
-  return $client->retrieveMembershipLevels($tokens['access_token']);
 }

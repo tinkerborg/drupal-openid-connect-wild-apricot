@@ -1,0 +1,5 @@
+openid_connect_wild_apricot.membership_level_bindings:
+  route_name: openid_connect_wild_apricot.membership_level_bindings
+  title: Wild Apricot Role Mappings
+  base_route: entity.user.collection
+  weight: 20

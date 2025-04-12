@@ -1,0 +1,6 @@
+openid_connect_wild_apricot.membership_level_bindings:
+  title: 'Wild Apricot Role Mappings'
+  description: 'Map Wild Apricot membership levels to Drupal roles'
+  route_name: openid_connect_wild_apricot.membership_level_bindings
+  parent: entity.user.collection
+  weight: 20

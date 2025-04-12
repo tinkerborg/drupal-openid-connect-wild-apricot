@@ -1,0 +1,10 @@
+name: OpenID Connect Wild Apricot Client
+type: module
+description: Wild Apricot integration for OpenID connect
+package: Custom
+core_version_requirement: ^9.2 || ^10 || ^11
+dependencies:
+  - openid_connect:openid_connect
+configure: openid_connect.admin_settings
+version: '2.0'
+project: openid_connect_wild_apricot

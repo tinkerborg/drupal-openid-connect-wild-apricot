@@ -1,0 +1,8 @@
+openid_connect_wild_apricot.membership_level_bindings:
+  path: /admin/people/permissions/openid-connect-wild-apricot
+  defaults:
+    _form: '\Drupal\openid_connect_wild_apricot\Form\MembershipLevelBindingsForm'
+  requirements:
+    _permission: administer permissions
+  options:
+    _maintenance_access: TRUE
