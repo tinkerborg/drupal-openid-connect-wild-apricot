@@ -46,20 +46,20 @@ class MembershipLevelBindingsForm extends FormBase implements ContainerInjection
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     $config = \Drupal::service('config.factory')->get('openid_connect.settings.wild_apricot');
-    
-    $membership_level_bindings = $config->get('membership_level_bindings');
+
+    $membership_level_bindings = $config->get('membership_level_bindings') ?: [];
 
     $role_names = user_roles(TRUE);
-	 
+
     $header = ["level" => "Membership Level"];
-    
+
     foreach ($role_names as $rid => $role) {
       if ($rid == 'authenticated') continue;
       $header[$rid] = $role->get('label');
     }
-   
+
     $membership_levels = $this->get_membership_levels();
-    
+
     $membership_levels['__ignore__'] = "<b>Ignore Role - <i>Wild Apricot will not manage this role.</i></b>";
 
     $form['table'] = [
@@ -92,7 +92,7 @@ class MembershipLevelBindingsForm extends FormBase implements ContainerInjection
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $membership_level_bindings = [];
-    
+
     foreach ($form_state->getValue('table') as $level => $bindings) {
       $membership_level_bindings[$level] = array_keys(array_filter($bindings, function($val) {
         return $val;
@@ -102,10 +102,10 @@ class MembershipLevelBindingsForm extends FormBase implements ContainerInjection
     $config = \Drupal::service('config.factory')->getEditable('openid_connect.settings.wild_apricot');
     $config->set('membership_level_bindings', $membership_level_bindings);
     $config->save();
-    
+
     $this->messenger()->addStatus($this->t('Updated bindings.'));
   }
- 
+
   private function get_client() {
     $configuration = $this->config('openid_connect.settings.wild_apricot')->get('settings');
     return $this->pluginManager->createInstance('wild_apricot', $configuration);
