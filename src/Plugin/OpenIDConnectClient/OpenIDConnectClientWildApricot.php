@@ -193,24 +193,7 @@ class OpenIDConnectClientWildApricot extends OpenIDConnectClientBase {
   public function retrieveUserInfo($access_token) {
     $userinfo = parent::retrieveUserInfo($access_token);
 
-    $userinfo['email'] = $userinfo['Email'];
-    unset($userinfo['Email']);
-
-    $userinfo['sub'] = $userinfo['Id'];
-    unset($userinfo['Id']);
-
-    $userinfo['name'] = $userinfo['FirstName'];
-    unset($userinfo['FirstName']);
-
-    $userinfo['given_name'] = $userinfo['LastName'];
-    unset($userinfo['LastName']);
-
-    // $userinfo['phone_number'] = $userinfo['Phone'];
-    // unset($userinfo['Phone']);
-
-    $userinfo['preferred_username'] = $userinfo['email'];
-
-    return $userinfo;
+    return openid_connect_wild_apricot_map_claim($userinfo);
   }
 
   /**

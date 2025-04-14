@@ -1,16 +1,26 @@
 <?php
 
+function openid_connect_wild_apricot_map_claim($userinfo) {
+    return [
+        'sub' => $userinfo['Id'],
+        'preferred_username' => $userinfo['Email'],
+        'email' => $userinfo['Email'],
+        'given_name' => $userinfo['FirstName'],
+        'family_name' => $userinfo['LastName'],
+        'name' => $userinfo['FirstName'] . " " .$userinfo['LastName'],
+        'membership_level' => is_array($userinfo['MembershipLevel']) ? $userinfo['MembershipLevel']['Id'] : NULL,
+        'account_status' => $userinfo['Status']
+    ];
+}
+
 function openid_connect_wild_apricot_openid_connect_post_authorize($account, $context) {
   $userinfo = $context['userinfo'];
 
   $config = \Drupal::service('config.factory')->get('openid_connect.settings.wild_apricot');
   $membership_level_bindings = $config->get('membership_level_bindings');
 
-  $membership_level = isset($userinfo['MembershipLevel']) 
-                      && isset($userinfo['MembershipLevel']['Id'])
-                      && isset($userinfo['Status'])
-                      && in_array($userinfo['Status'], array('Active', 'PendingRenewal'))
-                       ? $userinfo['MembershipLevel']['Id'] 
+  $membership_level = in_array($userinfo['account_status'], array('Active', 'PendingRenewal'))
+                       ? $userinfo['membership_level']
                        : NULL;
 
   $roles = $account->getRoles();
